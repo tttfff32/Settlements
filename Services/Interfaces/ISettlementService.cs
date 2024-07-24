@@ -7,8 +7,9 @@ namespace Settlements.Services.Interfaces
     {
         IEnumerable<SettlementDTO> GetSettlements();
         SettlementDTO GetSettlementById(int id);
-        void AddSettlement(SettlementDTO settlement);
+        bool AddSettlement(SettlementDTO settlement);
         void UpdateSettlement(SettlementDTO settlement,int Id);
         void DeleteSettlement(int id);
+        Task<IEnumerable<Settlement>> FilterSettlements(string search = "");
     }
 }

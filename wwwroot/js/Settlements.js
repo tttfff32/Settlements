@@ -1,5 +1,7 @@
 const uri = "/Settlement";
 let settlements = [];
+let currentPage = 1;
+const pageSize = 5;
 
 function getItems() {
   fetch(uri, {
@@ -79,6 +81,40 @@ function updateItem() {
   return false;
 }
 
+function searchSettlements() {
+    debugger
+    const searchTextbox = document.getElementById("search-box");
+    const searchTerm = searchTextbox.value.trim();
+    const searchUri = searchTerm === ""
+    ? `${uri}` 
+    : `${uri}/filter/${encodeURIComponent(searchTerm)}`; 
+
+    fetch(searchUri, {
+      headers: {
+        Accept: "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        _displayItems(data);
+      })
+      .catch((error) => console.error("Unable to get items.", error));
+  }
+  let sortOrder = 'asc'; 
+
+  function sortItems(order) {
+    sortOrder = order; 
+    _displayItems(sortData(settlements, sortOrder)); 
+}
+
+function sortData(data, order) {
+    return data.sort((a, b) => {
+        const comparison = a.name.localeCompare(b.name);
+        return order === 'asc' ? comparison : -comparison;
+    });
+}
+ 
+
 function closeInput() {
   document.getElementById("editForm").style.display = "none";
 }
@@ -110,6 +146,7 @@ function _displayItems(data) {
     let td3 = tr.insertCell(2);
     td3.appendChild(deleteButton);
   });
-
   settlements = data;
 }
+
+

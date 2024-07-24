@@ -43,8 +43,10 @@ namespace Settlements.Controllers
         [HttpPost(Name = "AddSettlement")]
         public IActionResult AddSettlement([FromBody] SettlementDTO newSettlement)
         {
-            _settlementService.AddSettlement(newSettlement);
-            return CreatedAtRoute("GetSettlements", new { id = newSettlement.Id }, newSettlement);
+            if (_settlementService.AddSettlement(newSettlement))
+                return CreatedAtRoute("GetSettlements", new { id = newSettlement.Id }, newSettlement);
+            else
+                return Conflict(new { message = "Settlement already exists." });
         }
 
         [HttpPut("{id}", Name = "UpdateSettlement")]
@@ -57,6 +59,13 @@ namespace Settlements.Controllers
             updateSettlement.Id = id;
             _settlementService.UpdateSettlement(updateSettlement,id);
             return NoContent();
+        }
+
+        [HttpGet("filter/{search?}", Name ="FilterSettlements")]
+        public async Task<IActionResult> FilterSettlements(string search = "")
+        {
+            var result = await _settlementService.FilterSettlements(search);
+            return Ok(result);
         }
     }
 }

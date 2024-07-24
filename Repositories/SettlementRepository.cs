@@ -31,6 +31,13 @@ namespace Settlements.Repositories
             _context.SaveChanges();
         }
 
+        public bool SettlementExists(string name)
+        {
+            string pattern = $"%{name}%";
+            return _context.Settlements
+                           .Any(s => EF.Functions.Like(s.Name, pattern));
+        }
+
         public void UpdateSettlement(Settlement settlement)
         {
             var existingSettlement = _context.Settlements.Find(settlement.Id);
@@ -54,6 +61,18 @@ namespace Settlements.Repositories
                 _context.Settlements.Remove(settlement);
                 _context.SaveChanges();
             }
+        }
+
+        public async Task<IEnumerable<Settlement>> FilterSettlements(string search = "")
+        {
+            var query = _context.Settlements.AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(s => s.Name.Contains(search));
+            }
+
+            return await query.ToListAsync();
         }
     }
 }

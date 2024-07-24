@@ -37,13 +37,19 @@ namespace Settlements.Services
             };
         }
 
-        public void AddSettlement(SettlementDTO settlementDTO)
+        public  bool AddSettlement(SettlementDTO settlementDTO)
         {
             var settlement = new Settlement
             {
                 Name = settlementDTO.Name
             };
+
+            if(_settlementRepository.SettlementExists(settlement.Name))
+            {
+                return false;
+            }
             _settlementRepository.AddSettlement(settlement);
+            return true;
         }
 
         public void UpdateSettlement(SettlementDTO settlementDTO , int Id)
@@ -60,5 +66,10 @@ namespace Settlements.Services
         {
             _settlementRepository.DeleteSettlement(id);
         }
+        public async Task<IEnumerable<Settlement>> FilterSettlements(string search="")
+        {
+            return await _settlementRepository.FilterSettlements(search);
+        }
+
     }
 }
