@@ -1,8 +1,6 @@
 using Settlements.Models;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Settlements.Repositories;
+using System.Text;
 
 namespace Settlements.Repositories
 {
@@ -69,10 +67,47 @@ namespace Settlements.Repositories
 
             if (!string.IsNullOrEmpty(search))
             {
-                query = query.Where(s => s.Name.Contains(search));
+                string transliteratedSearch = Transliterate(search);
+                query = query.Where(s => s.Name.Contains(search) || s.Name.Contains(transliteratedSearch));
             }
 
             return await query.ToListAsync();
+        }
+
+         private string Transliterate(string input)
+        {
+            var transliterationMap = new Dictionary<string, string>
+            {
+               { "a", "ש" }, { "b", "נ" }, { "c", "ב" }, { "d", "ג" }, { "e", "ק" },
+                { "f", "כ" }, { "g", "ע" }, { "h", "י" }, { "i", "ן" }, { "j", "ח" },
+                { "k", "ל" }, { "l", "ך" }, { "m", "צ" }, { "n", "מ" }, { "o", "ם" },
+                { "p", "פ" }, { "q", "/" }, { "r", "ר" }, { "s", "ד" }, { "t", "א" },
+                { "u", "ו" }, { "v", "ה" }, { "w", "'" }, { "x", "ס" }, { "y", "ט" },
+                { "z", "ז" },
+                { "A", "ש" }, { "B", "נ" }, { "C", "ב" }, { "D", "ג" }, { "E", "ק" },
+                { "F", "כ" }, { "G", "ע" }, { "H", "י" }, { "I", "ן" }, { "J", "ח" },
+                { "K", "ל" }, { "L", "ך" }, { "M", "צ" }, { "N", "מ" }, { "O", "ם" },
+                { "P", "פ" }, { "Q", "/" }, { "R", "ר" }, { "S", "ד" }, { "T", "א" },
+                { "U", "ו" }, { "V", "ה" }, { "W", "'" }, { "X", "ס" }, { "Y", "ט" },
+                { "Z", "ז" },{ ",","ת" }
+            };
+
+           var sb = new StringBuilder();
+
+            foreach (var ch in input)
+            {
+                string mappedChar;
+                if (transliterationMap.TryGetValue(ch.ToString(), out mappedChar))
+                {
+                    sb.Append(mappedChar);
+                }
+                else
+                {
+                    sb.Append(ch); 
+                }
+            }
+
+            return sb.ToString();
         }
     }
 }

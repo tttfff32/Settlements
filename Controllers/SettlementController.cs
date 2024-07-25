@@ -17,11 +17,18 @@ namespace Settlements.Controllers
             _settlementService = settlementService;
         }
 
-        [HttpGet(Name = "GetSettlements")]
-        public ActionResult<IEnumerable<SettlementDTO>> GetSettlements()
+        [HttpGet("page/{pageNumber}")]
+        public IActionResult GetSettlements(int pageNumber, [FromQuery] int pageSize = 5)
         {
-            var settlements = _settlementService.GetSettlements();
-            return Ok(settlements);
+            var settlements = _settlementService.GetSettlementsForPage(pageNumber, pageSize);
+            var totalPages = _settlementService.GetTotalPages(pageSize);
+
+            return Ok(new
+            {
+                Settlements = settlements,
+                TotalPages = totalPages,
+                CurrentPage = pageNumber
+            });
         }
 
         [HttpGet("{id}", Name = "GetSettlementById")]

@@ -1,28 +1,39 @@
 const uri = "/Settlement";
 let settlements = [];
-let currentPage = 1;
-const pageSize = 5;
 
-function getItems() {
-  fetch(uri, {
-    headers: {
-      Accept: "application/json",
-    },
-  })
+const pageSize = 5;
+var currentPage = 1;
+
+function loadPage(pageNumber) {
+  fetch(`${uri}/page/${pageNumber}?pageSize=${pageSize}`)
     .then((response) => response.json())
     .then((data) => {
-      _displayItems(data);
-    })
-    .catch((error) => console.error("Unable to get items.", error));
+      if (data.settlements.length > 0) {
+        settlements = data.settlements;
+        _displayItems(settlements);
+        currentPage = data.currentPage;
+      }
+    });
 }
 
-function addItem() {
+function PreviousPage() {
+  if (currentPage > 1) {
+    loadPage(currentPage - 1);
+  } else loadPage(currentPage);
+}
+
+function NextPage() {
+  loadPage(currentPage + 1);
+}
+
+
+async function addItem() {
   const addNameTextbox = document.getElementById("add-name");
   const item = {
     name: addNameTextbox.value.trim(),
   };
 
-  fetch(uri, {
+  await fetch(uri, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -32,21 +43,21 @@ function addItem() {
   })
     .then((response) => response.json())
     .then(() => {
-      getItems();
+      loadPage(currentPage);
       addNameTextbox.value = "";
     })
     .catch((error) => console.error("Unable to add item.", error));
 }
 
-function deleteItem(id) {
-  fetch(`${uri}/${id}`, {
+async function deleteItem(id) {
+  await fetch(`${uri}/${id}`, {
     method: "DELETE",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
   })
-    .then(() => getItems())
+    .then(() => loadPage(currentPage))
     .catch((error) => console.error("Unable to delete item.", error));
 }
 
@@ -58,14 +69,14 @@ function displayEditForm(id) {
   document.getElementById("editForm").style.display = "block";
 }
 
-function updateItem() {
+async function updateItem() {
   const itemId = document.getElementById("edit-id").value;
   const item = {
     id: parseInt(itemId, 10),
     name: document.getElementById("edit-name").value.trim(),
   };
 
-  fetch(`${uri}/${itemId}`, {
+  await fetch(`${uri}/${itemId}`, {
     method: "PUT",
     headers: {
       Accept: "application/json",
@@ -73,7 +84,7 @@ function updateItem() {
     },
     body: JSON.stringify(item),
   })
-    .then(() => getItems())
+    .then(() => loadPage(currentPage))
     .catch((error) => console.error("Unable to update item.", error));
 
   closeInput();
@@ -81,39 +92,43 @@ function updateItem() {
   return false;
 }
 
-function searchSettlements() {
-    debugger
-    const searchTextbox = document.getElementById("search-box");
-    const searchTerm = searchTextbox.value.trim();
-    const searchUri = searchTerm === ""
-    ? `${uri}` 
-    : `${uri}/filter/${encodeURIComponent(searchTerm)}`; 
+async function searchSettlements() {
+  const searchTextbox = document.getElementById("search-box");
+  const searchTerm = searchTextbox.value.trim();
+  const searchUri =
+    searchTerm === ""
+      ? `${uri}/page/${currentPage}?pageSize=${pageSize}`
+      : `${uri}/filter/${encodeURIComponent(searchTerm)}`;
 
-    fetch(searchUri, {
-      headers: {
-        Accept: "application/json",
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
+  await fetch(searchUri, {
+    headers: {
+      Accept: "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (searchTerm === "") {
+        settlements = data.settlements;
+        _displayItems(settlements);
+      } else {
         _displayItems(data);
-      })
-      .catch((error) => console.error("Unable to get items.", error));
-  }
-  let sortOrder = 'asc'; 
+      }
+    })
+    .catch((error) => console.error("Unable to get items.", error));
+}
+let sortOrder = "asc";
 
-  function sortItems(order) {
-    sortOrder = order; 
-    _displayItems(sortData(settlements, sortOrder)); 
+function sortItems(order) {
+  sortOrder = order;
+  _displayItems(sortData(settlements, sortOrder));
 }
 
 function sortData(data, order) {
-    return data.sort((a, b) => {
-        const comparison = a.name.localeCompare(b.name);
-        return order === 'asc' ? comparison : -comparison;
-    });
+  return data.sort((a, b) => {
+    const comparison = a.name.localeCompare(b.name);
+    return order === "asc" ? comparison : -comparison;
+  });
 }
- 
 
 function closeInput() {
   document.getElementById("editForm").style.display = "none";
@@ -148,5 +163,4 @@ function _displayItems(data) {
   });
   settlements = data;
 }
-
-
+loadPage(currentPage);

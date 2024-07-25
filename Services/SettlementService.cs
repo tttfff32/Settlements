@@ -2,9 +2,10 @@ using Settlements.DTOs;
 using Settlements.Models;
 using Settlements.Services.Interfaces;
 using Settlements.Repositories;
+using System.Linq;
 
-namespace Settlements.Services
-{
+namespace Settlements.Services;
+
     public class SettlementService : ISettlementService
     {
         private readonly ISettlementRepository _settlementRepository;
@@ -70,6 +71,21 @@ namespace Settlements.Services
         {
             return await _settlementRepository.FilterSettlements(search);
         }
+
+
+    public List<Settlement> GetSettlementsForPage(int pageNumber, int pageSize)
+    {
+        var allSettlements = _settlementRepository.GetSettlements();
+        int skip = (pageNumber - 1) * pageSize;
+        return allSettlements.Skip(skip).Take(pageSize).ToList();
+    }
+
+    public int GetTotalPages(int pageSize)
+    {
+        List<Settlement> totalSettlements = _settlementRepository.GetSettlements().ToList();
+        var Count = totalSettlements.Count();
+        return (int)Math.Ceiling((double)Count / pageSize);
+
 
     }
 }
